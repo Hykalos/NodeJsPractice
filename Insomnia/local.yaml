@@ -15,4 +15,5 @@ environments:
     isPrivate: false
   data:
     baseUrl: http://localhost:3000/
-    apiKey: "Local Dev Key 1"
+    apiBaseUrl: "{{ _.baseUrl }}api/v1/"
+    apiKey: local-dev-key-1

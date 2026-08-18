@@ -7,16 +7,138 @@ meta:
   modified: 1787044181999
   description: ""
 collection:
-  - url: "{{ _.baseUrl }}api/v1/anime"
-    name: Get all animes
+  - url: "{{ _.baseUrl }}healthz"
+    name: Health check
     meta:
-      id: req_56e76788684a471faa19cb282be9bf7d
+      id: req_a1f8f49e7f2f4eb9ab2f4e105a5f4b31
       created: 1787044204481
       modified: 1787044289609
       isPrivate: false
       description: ""
       sortKey: -1787044204481
     method: GET
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.apiBaseUrl }}anime?page=1&pageSize=20&sortBy=yearFrom&sortOrder=desc&titleContains=ble&ongoing=false&yearFromGte=1990&yearFromLte=2026"
+    name: List anime
+    meta:
+      id: req_56e76788684a471faa19cb282be9bf7d
+      created: 1787044204481
+      modified: 1787044289609
+      isPrivate: false
+      description: ""
+      sortKey: -1787044204480
+    method: GET
+    headers:
+      - name: x-api-key
+        value: "{{ _.apiKey }}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.apiBaseUrl }}anime/00000000-0000-0000-0000-000000000000"
+    name: Get anime by id
+    meta:
+      id: req_96d2c0d3a6834f62a9dd6a7cc2f3286f
+      created: 1787044204482
+      modified: 1787044289609
+      isPrivate: false
+      description: ""
+      sortKey: -1787044204479
+    method: GET
+    headers:
+      - name: x-api-key
+        value: "{{ _.apiKey }}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.apiBaseUrl }}anime"
+    name: Create anime
+    meta:
+      id: req_451452389e37498abf8ff66dc6e0f16f
+      created: 1787044204483
+      modified: 1787044289609
+      isPrivate: false
+      description: ""
+      sortKey: -1787044204478
+    method: POST
+    body:
+      mimeType: application/json
+      text: |
+        {
+          "title": "Bleach",
+          "yearFrom": 2004,
+          "yearTo": 2012
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: x-api-key
+        value: "{{ _.apiKey }}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.apiBaseUrl }}anime/00000000-0000-0000-0000-000000000000"
+    name: Update anime
+    meta:
+      id: req_24351d1f58ac4886ba99f6727bff6e27
+      created: 1787044204484
+      modified: 1787044289609
+      isPrivate: false
+      description: ""
+      sortKey: -1787044204477
+    method: PUT
+    body:
+      mimeType: application/json
+      text: |
+        {
+          "title": "Bleach: Thousand-Year Blood War",
+          "yearFrom": 2022,
+          "yearTo": null
+        }
+    headers:
+      - name: Content-Type
+        value: application/json
+      - name: x-api-key
+        value: "{{ _.apiKey }}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.apiBaseUrl }}anime/00000000-0000-0000-0000-000000000000"
+    name: Delete anime
+    meta:
+      id: req_df72bc29be8e4bd7bc23668a29db17ab
+      created: 1787044204485
+      modified: 1787044289609
+      isPrivate: false
+      description: ""
+      sortKey: -1787044204476
+    method: DELETE
     headers:
       - name: x-api-key
         value: "{{ _.apiKey }}"

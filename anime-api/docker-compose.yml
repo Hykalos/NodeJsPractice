@@ -1,0 +1,26 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: anime
+      POSTGRES_PASSWORD: anime
+      POSTGRES_DB: anime_db
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U anime -d anime_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 3000
+      DATABASE_URL: postgresql://anime:anime@postgres:5432/anime_db
+      API_KEYS_BOOTSTRAP: local-dev-key-1:Local Dev Key 1,local-dev-key-2:Local Dev Key 2
+    ports:
+      - "3000:3000"

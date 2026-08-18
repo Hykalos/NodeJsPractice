@@ -2,28 +2,8 @@ import express, { type Request, type Response } from "express";
 import type { Pool } from "pg";
 import { ZodError } from "zod";
 import { apiKeyAuth } from "./auth";
+import { createAnimeRepository } from "./repositories/animeRepository";
 import { animeCreateSchema, animeListQuerySchema, animeUpdateSchema } from "./validation";
-
-type AnimeRow = {
-  id: string;
-  title: string;
-  year_from: number;
-  year_to: number | null;
-  created_at: string;
-  updated_at: string;
-};
-
-function mapAnime(row: AnimeRow) {
-  return {
-    id: row.id,
-    title: row.title,
-    yearFrom: row.year_from,
-    yearTo: row.year_to,
-    ongoing: row.year_to == null,
-    createdAt: row.created_at,
-    updatedAt: row.updated_at
-  };
-}
 
 function handleZodError(res: Response, error: ZodError): void {
   res.status(422).json({
@@ -37,11 +17,12 @@ function handleZodError(res: Response, error: ZodError): void {
 
 export function createApp(pool: Pool) {
   const app = express();
+  const animeRepository = createAnimeRepository(pool);
   app.use(express.json());
 
   app.get("/healthz", async (_req, res) => {
     try {
-      await pool.query("SELECT 1");
+      await animeRepository.checkHealth();
       res.json({ status: "ok", database: "ok" });
     } catch {
       res.status(503).json({ status: "degraded", database: "unhealthy" });
@@ -53,16 +34,9 @@ export function createApp(pool: Pool) {
   app.post("/api/v1/anime", async (req, res) => {
     try {
       const payload = animeCreateSchema.parse(req.body);
-      const result = await pool.query<AnimeRow>(
-        `
-          INSERT INTO anime(title, year_from, year_to)
-          VALUES ($1, $2, $3)
-          RETURNING id, title, year_from, year_to, created_at, updated_at
-        `,
-        [payload.title, payload.yearFrom, payload.yearTo ?? null]
-      );
+      const anime = await animeRepository.create(payload);
 
-      res.status(201).json({ data: mapAnime(result.rows[0]) });
+      res.status(201).json({ data: anime });
     } catch (error) {
       if (error instanceof ZodError) {
         handleZodError(res, error);
@@ -79,61 +53,9 @@ export function createApp(pool: Pool) {
   app.get("/api/v1/anime", async (req, res) => {
     try {
       const query = animeListQuerySchema.parse(req.query);
+      const result = await animeRepository.list(query);
 
-      const filters: string[] = [];
-      const values: Array<string | number | boolean> = [];
-
-      if (query.titleContains) {
-        values.push(`%${query.titleContains}%`);
-        filters.push(`title ILIKE $${values.length}`);
-      }
-      if (query.ongoing === "true") {
-        filters.push("year_to IS NULL");
-      }
-      if (query.ongoing === "false") {
-        filters.push("year_to IS NOT NULL");
-      }
-      if (query.yearFromGte != null) {
-        values.push(query.yearFromGte);
-        filters.push(`year_from >= $${values.length}`);
-      }
-      if (query.yearFromLte != null) {
-        values.push(query.yearFromLte);
-        filters.push(`year_from <= $${values.length}`);
-      }
-
-      const whereClause = filters.length > 0 ? `WHERE ${filters.join(" AND ")}` : "";
-      const offset = (query.page - 1) * query.pageSize;
-      const orderBy = query.sortBy === "yearFrom" ? "year_from" : "title";
-      const orderDirection = query.sortOrder.toUpperCase() === "DESC" ? "DESC" : "ASC";
-
-      values.push(query.pageSize);
-      values.push(offset);
-
-      const listSql = `
-        SELECT id, title, year_from, year_to, created_at, updated_at
-        FROM anime
-        ${whereClause}
-        ORDER BY ${orderBy} ${orderDirection}
-        LIMIT $${values.length - 1}
-        OFFSET $${values.length}
-      `;
-
-      const countSql = `SELECT COUNT(*)::INT AS total FROM anime ${whereClause}`;
-
-      const [listResult, countResult] = await Promise.all([
-        pool.query<AnimeRow>(listSql, values),
-        pool.query<{ total: number }>(countSql, values.slice(0, values.length - 2))
-      ]);
-
-      res.json({
-        data: listResult.rows.map(mapAnime),
-        meta: {
-          page: query.page,
-          pageSize: query.pageSize,
-          total: countResult.rows[0].total
-        }
-      });
+      res.json(result);
     } catch (error) {
       if (error instanceof ZodError) {
         handleZodError(res, error);
@@ -144,45 +66,27 @@ export function createApp(pool: Pool) {
   });
 
   app.get("/api/v1/anime/:id", async (req, res) => {
-    const result = await pool.query<AnimeRow>(
-      `
-        SELECT id, title, year_from, year_to, created_at, updated_at
-        FROM anime
-        WHERE id = $1
-      `,
-      [req.params.id]
-    );
+    const anime = await animeRepository.getById(req.params.id);
 
-    if (result.rowCount === 0) {
+    if (anime == null) {
       res.status(404).json({ error: { code: "ANIME_NOT_FOUND", message: "Anime not found" } });
       return;
     }
 
-    res.json({ data: mapAnime(result.rows[0]) });
+    res.json({ data: anime });
   });
 
   app.put("/api/v1/anime/:id", async (req, res) => {
     try {
       const payload = animeUpdateSchema.parse(req.body);
-      const result = await pool.query<AnimeRow>(
-        `
-          UPDATE anime
-          SET title = $1,
-              year_from = $2,
-              year_to = $3,
-              updated_at = NOW()
-          WHERE id = $4
-          RETURNING id, title, year_from, year_to, created_at, updated_at
-        `,
-        [payload.title, payload.yearFrom, payload.yearTo ?? null, req.params.id]
-      );
+      const anime = await animeRepository.update(req.params.id, payload);
 
-      if (result.rowCount === 0) {
+      if (anime == null) {
         res.status(404).json({ error: { code: "ANIME_NOT_FOUND", message: "Anime not found" } });
         return;
       }
 
-      res.json({ data: mapAnime(result.rows[0]) });
+      res.json({ data: anime });
     } catch (error) {
       if (error instanceof ZodError) {
         handleZodError(res, error);
@@ -197,8 +101,8 @@ export function createApp(pool: Pool) {
   });
 
   app.delete("/api/v1/anime/:id", async (req, res) => {
-    const result = await pool.query("DELETE FROM anime WHERE id = $1", [req.params.id]);
-    if (result.rowCount === 0) {
+    const wasDeleted = await animeRepository.delete(req.params.id);
+    if (!wasDeleted) {
       res.status(404).json({ error: { code: "ANIME_NOT_FOUND", message: "Anime not found" } });
       return;
     }

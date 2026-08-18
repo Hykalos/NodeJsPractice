@@ -11,3 +11,8 @@ This repo uses the default five-role triage label vocabulary. See docs/agents/tr
 ### Domain docs
 
 This repo uses a single-context layout with root CONTEXT.md and docs/adr/. See docs/agents/domain.md.
+
+### Command working directory
+
+Run Node and npm commands from anime-api/.
+Example: `cd anime-api` before `npm run build`, `npm test`, and similar scripts.

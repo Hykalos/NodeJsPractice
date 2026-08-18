@@ -39,8 +39,13 @@ export function createApp(pool: Pool) {
   const app = express();
   app.use(express.json());
 
-  app.get("/healthz", (_req, res) => {
-    res.json({ status: "ok" });
+  app.get("/healthz", async (_req, res) => {
+    try {
+      await pool.query("SELECT 1");
+      res.json({ status: "ok", database: "ok" });
+    } catch {
+      res.status(503).json({ status: "degraded", database: "unhealthy" });
+    }
   });
 
   app.use("/api/v1", apiKeyAuth(pool));

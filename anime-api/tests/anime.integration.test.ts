@@ -41,7 +41,23 @@ describe("anime API integration", () => {
       .get("/healthz")
       .expect(200)
       .expect((res) => {
-        expect(res.body).toEqual({ status: "ok" });
+        expect(res.body).toEqual({ status: "ok", database: "ok" });
+      });
+  });
+
+  it("returns degraded health when database is unavailable", async () => {
+    const unhealthyPool = {
+      query: async () => {
+        throw new Error("database unavailable");
+      }
+    } as unknown as Pool;
+
+    const app = createApp(unhealthyPool);
+    await request(app)
+      .get("/healthz")
+      .expect(503)
+      .expect((res) => {
+        expect(res.body).toEqual({ status: "degraded", database: "unhealthy" });
       });
   });
 

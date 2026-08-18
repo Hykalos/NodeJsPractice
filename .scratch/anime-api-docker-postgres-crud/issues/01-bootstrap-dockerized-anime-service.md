@@ -4,7 +4,12 @@
 
 **Blocked by:** None — can start immediately.
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Dockerized API and PostgreSQL services start together with database health gating API startup.
-- [ ] A health endpoint returns a successful response when the API is ready to serve traffic.
+- [x] Dockerized API and PostgreSQL services start together with database health gating API startup.
+- [x] A health endpoint returns a successful response when the API is ready to serve traffic.
+
+## Answer
+
+- Docker health-gated startup is configured via service dependency on PostgreSQL health in docker-compose.
+- API readiness endpoint behavior is verified by integration test against `/healthz` returning `200` with `{ "status": "ok" }`.

@@ -31,6 +31,20 @@ describe("anime API integration", () => {
     }
   });
 
+  it("serves a health response", async () => {
+    if (!integrationReady || !pool) {
+      return;
+    }
+
+    const app = createApp(pool);
+    await request(app)
+      .get("/healthz")
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toEqual({ status: "ok" });
+      });
+  });
+
   afterAll(async () => {
     if (pool) {
       await pool.end();

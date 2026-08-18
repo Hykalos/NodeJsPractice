@@ -15,4 +15,4 @@ environments:
     isPrivate: false
   data:
     baseUrl: http://localhost:3000/
-    "": ""
+    apiKey: "Local Dev Key 1"

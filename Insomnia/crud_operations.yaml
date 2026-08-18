@@ -7,8 +7,8 @@ meta:
   modified: 1787044181999
   description: ""
 collection:
-  - url: "{{ _.baseUrl }}"
-    name: Get anime list
+  - url: "{{ _.baseUrl }}api/v1/anime"
+    name: Get all animes
     meta:
       id: req_56e76788684a471faa19cb282be9bf7d
       created: 1787044204481
@@ -17,6 +17,9 @@ collection:
       description: ""
       sortKey: -1787044204481
     method: GET
+    headers:
+      - name: x-api-key
+        value: "{{ _.apiKey }}"
     settings:
       renderRequestBody: true
       encodeUrl: true

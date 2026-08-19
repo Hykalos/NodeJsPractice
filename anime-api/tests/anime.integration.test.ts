@@ -9,30 +9,23 @@ import { hashApiKey } from "../src/auth";
 describe("anime API integration", () => {
   let container: StartedPostgreSqlContainer | undefined;
   let pool: Pool | undefined;
-  let integrationReady = false;
 
   beforeAll(async () => {
-    try {
-      container = await new PostgreSqlContainer("postgres:16-alpine")
-        .withDatabase("anime_db")
-        .withUsername("anime")
-        .withPassword("anime")
-        .start();
+    container = await new PostgreSqlContainer("postgres:16-alpine")
+      .withDatabase("anime_db")
+      .withUsername("anime")
+      .withPassword("anime")
+      .start();
 
-      process.env.DATABASE_URL = container.getConnectionUri();
+    process.env.DATABASE_URL = container.getConnectionUri();
 
-      await runMigrations();
-      pool = new Pool({ connectionString: process.env.DATABASE_URL });
-      integrationReady = true;
-    } catch (error) {
-      process.stderr.write(`Skipping integration tests: ${String(error)}\n`);
-      integrationReady = false;
-    }
+    await runMigrations();
+    pool = new Pool({ connectionString: process.env.DATABASE_URL });
   });
 
   beforeEach(async () => {
-    if (!integrationReady || !pool) {
-      return;
+    if (!pool) {
+      throw new Error("Integration test pool not initialized");
     }
 
     await pool.query("TRUNCATE TABLE anime RESTART IDENTITY CASCADE");
@@ -45,8 +38,8 @@ describe("anime API integration", () => {
   });
 
   it("serves a health response", async () => {
-    if (!integrationReady || !pool) {
-      return;
+    if (!pool) {
+      throw new Error("Integration test pool not initialized");
     }
 
     const app = createApp(pool);
@@ -84,8 +77,8 @@ describe("anime API integration", () => {
   });
 
   it("performs authenticated CRUD and validates response envelopes", async () => {
-    if (!integrationReady || !pool) {
-      return;
+    if (!pool) {
+      throw new Error("Integration test pool not initialized");
     }
     const app = createApp(pool);
 
@@ -162,8 +155,8 @@ describe("anime API integration", () => {
   });
 
   it("returns not-found for unknown ids", async () => {
-    if (!integrationReady || !pool) {
-      return;
+    if (!pool) {
+      throw new Error("Integration test pool not initialized");
     }
     const app = createApp(pool);
 
@@ -194,8 +187,8 @@ describe("anime API integration", () => {
   });
 
   it("rejects requests with missing or invalid api keys", async () => {
-    if (!integrationReady || !pool) {
-      return;
+    if (!pool) {
+      throw new Error("Integration test pool not initialized");
     }
     const app = createApp(pool);
 
@@ -224,8 +217,8 @@ describe("anime API integration", () => {
   });
 
   it("returns validation contracts for invalid request inputs", async () => {
-    if (!integrationReady || !pool) {
-      return;
+    if (!pool) {
+      throw new Error("Integration test pool not initialized");
     }
     const app = createApp(pool);
 
@@ -252,8 +245,8 @@ describe("anime API integration", () => {
   });
 
   it("returns conflict contract for duplicate title and yearFrom", async () => {
-    if (!integrationReady || !pool) {
-      return;
+    if (!pool) {
+      throw new Error("Integration test pool not initialized");
     }
     const app = createApp(pool);
 

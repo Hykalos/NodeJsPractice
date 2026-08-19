@@ -7,6 +7,29 @@ meta:
   modified: 1787044181999
   description: ""
 collection:
+  - url: "{{ _.apiBaseUrl
+      }}anime?page=1&pageSize=20&sortBy=yearFrom&sortOrder=desc&titleContains=b\
+      le&ongoing=false&yearFromGte=1990&yearFromLte=2026"
+    name: List anime
+    meta:
+      id: req_56e76788684a471faa19cb282be9bf7d
+      created: 1787044204481
+      modified: 1787128471902
+      isPrivate: false
+      description: ""
+      sortKey: -1787044204480
+    method: GET
+    headers:
+      - name: x-api-key
+        value: "{{ _.apiKey }}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
   - url: "{{ _.baseUrl }}healthz"
     name: Health check
     meta:
@@ -17,27 +40,6 @@ collection:
       description: ""
       sortKey: -1787044204481
     method: GET
-    settings:
-      renderRequestBody: true
-      encodeUrl: true
-      followRedirects: global
-      cookies:
-        send: true
-        store: true
-      rebuildPath: true
-  - url: "{{ _.apiBaseUrl }}anime?page=1&pageSize=20&sortBy=yearFrom&sortOrder=desc&titleContains=ble&ongoing=false&yearFromGte=1990&yearFromLte=2026"
-    name: List anime
-    meta:
-      id: req_56e76788684a471faa19cb282be9bf7d
-      created: 1787044204481
-      modified: 1787044289609
-      isPrivate: false
-      description: ""
-      sortKey: -1787044204480
-    method: GET
-    headers:
-      - name: x-api-key
-        value: "{{ _.apiKey }}"
     settings:
       renderRequestBody: true
       encodeUrl: true
@@ -139,6 +141,30 @@ collection:
       description: ""
       sortKey: -1787044204476
     method: DELETE
+    headers:
+      - name: x-api-key
+        value: "{{ _.apiKey }}"
+    settings:
+      renderRequestBody: true
+      encodeUrl: true
+      followRedirects: global
+      cookies:
+        send: true
+        store: true
+      rebuildPath: true
+  - url: "{{ _.apiBaseUrl
+      }}anime?page=1&pageSize=20&sortBy=yearFrom&sortOrder=desc&titleContains=b\
+      le&ongoing=false&yearFromGte=1990&yearFromLte=20260&sortBy=title&sortOrde\
+      r=asc"
+    name: List anime without filtering
+    meta:
+      id: req_ee64e1f5891e47168e60b8c9e9af0f28
+      created: 1787128478257
+      modified: 1787128597053
+      isPrivate: false
+      description: ""
+      sortKey: -1787044204479.5
+    method: GET
     headers:
       - name: x-api-key
         value: "{{ _.apiKey }}"

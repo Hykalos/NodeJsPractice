@@ -51,6 +51,8 @@ Node.js + TypeScript CRUD API for anime titles, running with Docker and PostgreS
 docker compose up --build
 ```
 
+The API container runs migrations on startup before serving traffic.
+
 Default seeded API keys:
 
 - `local-dev-key-1`
@@ -66,6 +68,35 @@ Default seeded API keys:
 
 All `/api/v1/*` endpoints require `x-api-key` header.
 
+Common headers for authenticated JSON requests:
+
+```bash
+-H "Content-Type: application/json" \
+-H "x-api-key: local-dev-key-1"
+```
+
+## Migration workflow
+
+Use these commands from `anime-api/`:
+
+1. Apply local migrations:
+
+   ```bash
+   npm run migrate
+   ```
+
+2. Start API after migrations (local dev):
+
+   ```bash
+   npm run dev
+   ```
+
+3. Run everything in Docker (migrations are executed at API startup):
+
+   ```bash
+   docker compose up --build
+   ```
+
 ## Example create request
 
 ```bash
@@ -75,10 +106,50 @@ curl -X POST http://localhost:3000/api/v1/anime \
   -d '{"title":"Bleach","yearFrom":2004,"yearTo":2012}'
 ```
 
-## Filtering and pagination example
+## Example read by id request
 
 ```bash
-curl "http://localhost:3000/api/v1/anime?page=1&pageSize=20&sortBy=yearFrom&sortOrder=desc&ongoing=false&titleContains=ble"
+curl -X GET http://localhost:3000/api/v1/anime/1 \
+   -H "x-api-key: local-dev-key-1"
+```
+
+## Example list requests
+
+List first page with defaults:
+
+```bash
+curl -X GET "http://localhost:3000/api/v1/anime?page=1&pageSize=10" \
+   -H "x-api-key: local-dev-key-1"
+```
+
+Sort chronologically descending and filter for completed titles from a year range:
+
+```bash
+curl -X GET "http://localhost:3000/api/v1/anime?page=1&pageSize=20&sortBy=yearFrom&sortOrder=desc&ongoing=false&yearFromMin=2000&yearFromMax=2015" \
+   -H "x-api-key: local-dev-key-1"
+```
+
+Find ongoing titles by partial name:
+
+```bash
+curl -X GET "http://localhost:3000/api/v1/anime?titleContains=ble&ongoing=true&sortBy=title&sortOrder=asc" \
+   -H "x-api-key: local-dev-key-1"
+```
+
+## Example update request
+
+```bash
+curl -X PUT http://localhost:3000/api/v1/anime/1 \
+   -H "Content-Type: application/json" \
+   -H "x-api-key: local-dev-key-1" \
+   -d '{"title":"Bleach: Thousand-Year Blood War","yearFrom":2022,"yearTo":null}'
+```
+
+## Example delete request
+
+```bash
+curl -X DELETE http://localhost:3000/api/v1/anime/1 \
+   -H "x-api-key: local-dev-key-1"
 ```
 
 ## Generate a new API key
